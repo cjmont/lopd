@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Tester Blockchain GDPR/LOPDP</title>
+    <!-- Incluye Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif; /* Cambia la fuente a Roboto */
+            margin: 20px;
+        }
+     .endpoint {
+            margin-bottom: 20px;
+        }
+     .result {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        const baseUrl = 'http://138.197.208.154:8098';
+        let csrfToken = '';
+
+        $(document).ready(function() {
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function(xhr, settings) {
+                    if (csrfToken) {
+                        xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+                    }
+                }
+            });
+        });
+
+        async function generateCsrfToken() {
+            const duration = parseInt($('#csrfDuration').val(), 10);
+            // Mostrar el botón de procesamiento y ocultar el botón normal
+            $('#generateTokenBtn').hide();
+            $('#processingBtn').show();
+
+            try {
+                const response = await fetch(`${baseUrl}/0x48e1b09fd922b871f5585f10d17f403afe896ce2756a057fc1b340ad48f3fc16`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ duration_hours: duration }),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                $('#csrfResult').text(JSON.stringify(result, null, 2));
+                $('#csrfToken').val(result.csrf_token);
+                csrfToken = result.csrf_token;
+
+                // Generar el enlace basado en el hash de transacción
+                const transactionHash = result.transaction_hash;
+                const linkUrl = `https://subnets.avax.network/c-chain/tx/${transactionHash}`;
+                $('#csrfLink').html(`<a href="${linkUrl}" target="_blank">View Transaction</a>`);
+            } catch (error) {
+                $('#csrfResult').text(`Error: ${error.message}`);
+            }
+
+            // Revertir los botones a su estado original
+            $('#generateTokenBtn').show();
+            $('#processingBtn').hide();
+        }
+
+        async function createCompany() {
+            const companyId = $('#companyId').val();
+            // Mostrar el botón de procesamiento y ocultar el botón normal
+            $('#createCompanyBtn').hide();
+            $('#processingCompanyBtn').show();
+
+            try {
+                const response = await fetch(`${baseUrl}/create_company`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ company_id: companyId }),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                $('#createCompanyResult').text(JSON.stringify(result, null, 2));
+
+                // Generar el enlace basado en el hash de transacción
+                const transactionHash = result.transaction_hash;
+                const linkUrl = `https://subnets.avax.network/c-chain/tx/${transactionHash}`;
+                $('#createCompanyLink').html(`<a href="${linkUrl}" target="_blank">View Transaction</a>`);
+            } catch (error) {
+                $('#createCompanyResult').text(`Error: ${error.message}`);
+            }
+
+            // Revertir los botones a su estado original
+            $('#createCompanyBtn').show();
+            $('#processingCompanyBtn').hide();
+        }
+
+        async function addData() {
+            const companyId = $('#addDataCompanyId').val();
+            const dataId = $('#dataId').val();
+            const dataContent = $('#dataContent').val();
+            const detail = $('#dataDetail').val();
+            // Mostrar el botón de procesamiento y ocultar el botón normal
+            $('#addDataBtn').hide();
+            $('#processingDataBtn').show();
+
+            try {
+                const response = await fetch(`${baseUrl}/add_data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                        data_id: dataId,
+                        data: JSON.parse(dataContent),
+                        detalle: detail
+                    }),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                $('#addDataResult').text(JSON.stringify(result, null, 2));
+
+                // Generar el enlace basado en el hash de transacción
+                const transactionHash = result.transaction_hash;
+                const linkUrl = `https://subnets.avax.network/c-chain/tx/${transactionHash}`;
+                $('#addDataLink').html(`<a href="${linkUrl}" target="_blank">View Transaction</a>`);
+            } catch (error) {
+                $('#addDataResult').text(`Error: ${error.message}`);
+            }
+
+            // Revertir los botones a su estado original
+            $('#addDataBtn').show();
+            $('#processingDataBtn').hide();
+        }
+
+        async function getData() {
+            const companyId = $('#getDataCompanyId').val();
+            const dataId = $('#getDataId').val();
+            // Mostrar el botón de procesamiento y ocultar el botón normal
+            $('#getDataBtn').hide();
+            $('#processingDataBtn').show();
+
+            try {
+                const response = await fetch(`${baseUrl}/get_data?company_id=${companyId}&data_id=${dataId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                $('#getDataResult').text(JSON.stringify(result, null, 2));
+            } catch (error) {
+                $('#getDataResult').text(`Error: ${error.message}`);
+            }
+
+            // Revertir los botones a su estado original
+            $('#getDataBtn').show();
+            $('#processingDataBtn').hide();
+        }
+    </script>
+</head>
+<body>
+    <h1>API Tester Blockchain GDPR/LOPDP</h1>
+
+    <div class="card endpoint">
+        <div class="card-content">
+            <span class="card-title">Generate CSRF Token</span>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="number" id="csrfDuration" value="1">
+                    <label for="csrfDuration">Duration Hours:</label>
+                </div>
+                <button id="generateTokenBtn" class="btn waves-effect waves-light" type="submit" name="action" onclick="generateCsrfToken()">
+                    Generate Token
+                </button>
+                <button id="processingBtn" class="btn disabled" style="display:none;">Processing...</button>
+            </div>
+            <pre class="result" id="csrfResult"></pre>
+            <p id="csrfLink"></p>
+        </div>
+    </div>
+
+    <div class="card endpoint">
+        <div class="card-content">
+            <span class="card-title">CSRF Token</span>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" id="csrfToken">
+                    <label for="csrfToken">CSRF Token:</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card endpoint">
+        <div class="card-content">
+            <span class="card-title">Create Company</span>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" id="companyId">
+                    <label for="companyId">Company ID:</label>
+                </div>
+                <button id="createCompanyBtn" class="btn waves-effect waves-light" type="submit" name="action" onclick="createCompany()">
+                    Create Company
+                </button>
+                <button id="processingCompanyBtn" class="btn disabled" style="display:none;">Processing...</button>
+            </div>
+            <pre class="result" id="createCompanyResult"></pre>
+            <p id="createCompanyLink"></p>
+        </div>
+    </div>
+
+    <div class="card endpoint">
+        <div class="card-content">
+            <span class="card-title">Add Data</span>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" id="addDataCompanyId">
+                    <label for="addDataCompanyId">Company ID:</label>
+                </div>
+                <div class="input-field col s12">
+                    <input type="text" id="dataId">
+                    <label for="dataId">Data ID:</label>
+                </div>
+                <div class="input-field col s12">
+                    <textarea id="dataContent" class="materialize-textarea"></textarea>
+                    <label for="dataContent">Data Content (JSON):</label>
+                </div>
+                <div class="input-field col s12">
+                    <textarea id="dataDetail" class="materialize-textarea"></textarea>
+                    <label for="dataDetail">Detail:</label>
+                </div>
+                <button id="addDataBtn" class="btn waves-effect waves-light" type="submit" name="action" onclick="addData()">
+                    Add Data
+                </button>
+                <button id="processingDataBtn" class="btn disabled" style="display:none;">Processing...</button>
+            </div>
+            <pre class="result" id="addDataResult"></pre>
+            <p id="addDataLink"></p>
+        </div>
+    </div>
+
+    <div class="card endpoint">
+        <div class="card-content">
+            <span class="card-title">Get Data</span>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" id="getDataCompanyId">
+                    <label for="getDataCompanyId">Company ID:</label>
+                </div>
+                <div class="input-field col s12">
+                    <input type="text" id="getDataId">
+                    <label for="getDataId">Data ID:</label>
+                </div>
+                <button id="getDataBtn" class="btn waves-effect waves-light" type="submit" name="action" onclick="getData()">
+                    Get Data
+                </button>
+                <button id="processingDataBtn" class="btn disabled" style="display:none;">Processing...</button>
+            </div>
+            <pre class="result" id="getDataResult"></pre>
+            <!-- No hay un enlace para esta acción ya que no se espera un hash de transacción -->
+        </div>
+    </div>
+</body>
+</html>
