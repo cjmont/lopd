@@ -14,7 +14,7 @@ set_solc_version('0.8.0')
 w3 = Web3(Web3.HTTPProvider('https://api.avax.network/ext/bc/C/rpc'))
 
 # Configurar cuenta
-private_key = "32390417a1b11f4df93a1f1d751ea8a214b4a523274263a14f4bbc37c5215bb9"
+private_key = "X2390417a1b11f4df93a1f1d751ea8a214b4a523274263a14f4bbc37c5215bb9"
 if private_key is None:
     raise ValueError("The PRIVATE_KEY environment variable is not set.")
 account = w3.eth.account.from_key(private_key)
